@@ -1,0 +1,2 @@
+# XDUpdateManager
+APP内更新提示框XDUpdateManager
