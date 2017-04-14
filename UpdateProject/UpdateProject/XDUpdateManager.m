@@ -168,7 +168,7 @@ appStoreUrl
  获取到点击取消按钮的次数
  */
 -(NSInteger)getChannelCount{
-    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
     NSString*path=[paths objectAtIndex:0];
     NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
     BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
@@ -187,7 +187,7 @@ appStoreUrl
 取消按钮点击记录增加次数
  */
 -(void)ChannelCountAdd{
-    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
     NSString*path=[paths objectAtIndex:0];
     NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
     BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
