@@ -150,7 +150,6 @@
 				TargetAttributes = {
 					544D558A1E88A25800E073F5 = {
 						CreatedOnToolsVersion = 8.2;
-						DevelopmentTeam = 4575NUE242;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -361,7 +360,7 @@
 			baseConfigurationReference = B62932C270AC40C45E193011 /* Pods-UpdateProject.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 4575NUE242;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = UpdateProject/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.boree.com.UpdateProject;
@@ -374,7 +373,7 @@
 			baseConfigurationReference = 05EA4DB0BE7E51072F194850 /* Pods-UpdateProject.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 4575NUE242;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = UpdateProject/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.boree.com.UpdateProject;

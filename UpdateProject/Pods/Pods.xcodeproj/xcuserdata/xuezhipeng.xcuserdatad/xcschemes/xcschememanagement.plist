@@ -6,43 +6,23 @@
 	<dict>
 		<key>AFNetworking.xcscheme</key>
 		<dict>
-			<key>orderHint</key>
-			<integer>1</integer>
-		</dict>
-		<key>PPNetworkHelper.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>3</integer>
+			<key>isShown</key>
+			<false/>
 		</dict>
 		<key>Pods-UpdateProject.xcscheme</key>
 		<dict>
-			<key>orderHint</key>
-			<integer>2</integer>
-		</dict>
-		<key>YYCache.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>4</integer>
+			<key>isShown</key>
+			<false/>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>979E0833FF6E84CCDDF54EB911F29FBA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>9E033EDB5EC0819481B0546434FA577B</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>A26D8FCE9B6BE9769F57CD8795EC196E</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>BC47E1705630B0B049DDEAA379AF3D5E</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>EDFAA708F465B02B0240376546007EE5</key>
 		<dict>
 			<key>primary</key>
 			<true/>

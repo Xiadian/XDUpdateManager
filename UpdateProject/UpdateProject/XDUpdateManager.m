@@ -21,6 +21,10 @@
 appStoreUrl
  */
 @property(nonatomic,copy)NSString * appStoreUrl;
+/**
+ 存更新信息的plist文件路径
+ */
+@property(nonatomic,copy)NSString * updatePlistPath;
 
 @end
 @implementation XDUpdateManager
@@ -37,6 +41,10 @@ appStoreUrl
         NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
         self.locVersion= [infoDictionary objectForKey:@"CFBundleShortVersionString"];
         self.appStoreUrl=[[NSString alloc] initWithFormat:@"http://itunes.apple.com/lookup?id=%@",APPID];
+        NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
+        NSString*path=[paths objectAtIndex:0];
+        NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
+        self.updatePlistPath=filePath;
     }
     return self;
 }
@@ -51,16 +59,17 @@ appStoreUrl
         //判断是否有结果
         if(responseObject[@"resultCount"]>0){
             //取出线上的版本号
-            NSString *onlineVersion=responseObject[@"results"][0][@"version"];
+            NSString *onlineVersion=[responseObject[@"results"] firstObject][@"version"];
             switch ([manager compareOnlineVersion:onlineVersion toVersion:manager.locVersion]) {
                 //线上的版本小  不做操作
                 case -1:
                 {
                 }
                     break;
-                //版本相同   不做操作
+                //版本相同
                 case 0:
-                {
+                {   //也许是app更新完成后 需要清空之前取消次数
+                   [manager clearPlistChannelCount];
                 }
                     break;
                 //线上的版本大 说明本地要进行更新操作
@@ -165,20 +174,45 @@ appStoreUrl
 }
 
 /**
+ 版本更新把取消更新次数置空
+ */
+-(void)clearPlistChannelCount{
+    
+    //先判断plist是否存在 不存在可以先不考虑 等有更新在创建文件就可以
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:self.updatePlistPath]) {
+        
+        //判断plist文件中存的版本
+        
+        NSString *plistVersion=[NSDictionary dictionaryWithContentsOfFile:self.updatePlistPath][@"plistVersion"];
+        
+        //如果plist文件中版本不同则更新plist文件中版本号并清空取消次数
+        
+        if (![plistVersion isEqualToString:self.locVersion]) {
+            
+            NSMutableDictionary *updateDic=[NSMutableDictionary dictionaryWithContentsOfFile:self.updatePlistPath];
+            
+            [updateDic setValue:@(0) forKey:@"channelCount"];
+            
+            [updateDic setValue:self.locVersion forKey:@"plistVersion"];
+            
+            [updateDic writeToFile:self.updatePlistPath atomically:YES];
+        }
+    }
+}
+/**
  获取到点击取消按钮的次数
  */
 -(NSInteger)getChannelCount{
-    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
-    NSString*path=[paths objectAtIndex:0];
-    NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
-    BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
+    BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:_updatePlistPath];
     if (result) {
-      NSNumber *count=[NSDictionary dictionaryWithContentsOfFile:filePath][@"channelCount"];
+      NSNumber *count=[NSDictionary dictionaryWithContentsOfFile:_updatePlistPath][@"channelCount"];
         return  [count integerValue];
     }
     else{
-        NSDictionary *dic=[NSDictionary dictionaryWithObjectsAndKeys:@(0),@"channelCount", nil];
-        [dic writeToFile:filePath atomically:YES];
+        //创建时将本地版本加入plist文件
+        NSDictionary *dic=[NSDictionary dictionaryWithObjectsAndKeys:@(0),@"channelCount",self.locVersion,@"plistVersion",nil];
+        [dic writeToFile:_updatePlistPath atomically:YES];
         return 0;
     }
     return 0;
@@ -187,15 +221,12 @@ appStoreUrl
 取消按钮点击记录增加次数
  */
 -(void)ChannelCountAdd{
-    NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
-    NSString*path=[paths objectAtIndex:0];
-    NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
-    BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
+    BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:_updatePlistPath];
     if (result) {
-        NSMutableDictionary *updateDic=[NSMutableDictionary dictionaryWithContentsOfFile:filePath];
+        NSMutableDictionary *updateDic=[NSMutableDictionary dictionaryWithContentsOfFile:_updatePlistPath];
         NSNumber *channelCount=updateDic[@"channelCount"];
         [updateDic setValue:  @([channelCount integerValue]+1) forKey:@"channelCount"];
-        [updateDic writeToFile:filePath atomically:YES];
+        [updateDic writeToFile:_updatePlistPath atomically:YES];
     }
 }
 /**
