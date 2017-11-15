@@ -119,8 +119,8 @@ appStoreUrl
     UIViewController *cv = [self getCurrentVC];
     
     UIAlertAction *ok = [UIAlertAction actionWithTitle:UPDATEOK style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        //跳转到appStore 须真机测试看效果
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://itunes.apple.com/cn/app/id%@?mt=8", APPID]] options:@{} completionHandler:nil];
+          //跳转到appStore 须真机测试看效果 适配8系统用这个老的跳转
+         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://itunes.apple.com/app/id%@?mt=8", APPID]]];
         //点击后还要重新弹出 始终在app视图上显示
         if (isforce) {
             [self showAlert:YES];
