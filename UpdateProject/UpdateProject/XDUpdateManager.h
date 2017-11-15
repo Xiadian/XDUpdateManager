@@ -7,8 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+
 //本app的唯一识别码 跳转appStore需要真机
-#define APPID  @"805451002"
+#define APPID  @"888237539"
 //设置点击取消更新的总共展示次数 超过次数就不在提示更新版本了
 #define MAXCHANNELCOUNT 4
 //弹窗的展示标题
@@ -17,6 +18,7 @@
 #define UPDATEOK  @"去更新"
 //弹窗的取消按钮文字
 #define UPDATECHANNEL  @"暂不更新"
+
 @interface XDUpdateManager : NSObject
 
 /**
@@ -24,5 +26,6 @@
 
  @param isForce 是否是必要去AppStore更新版本
  */
-+(void)CheckVersionUpadateWithForce:(BOOL)isForce;
++ (void)CheckVersionUpadateWithForce:(BOOL)isForce;
+
 @end

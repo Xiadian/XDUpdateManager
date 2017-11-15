@@ -8,58 +8,72 @@
 
 #import "XDUpdateManager.h"
 #import <AFNetworking.h>
+
 @interface XDUpdateManager ()
 /**
  线上版本
  */
-@property(nonatomic,copy)NSString * onlineVersion;
+@property (nonatomic, copy) NSString * onlineVersion;
 /**
 本地版本
  */
-@property(nonatomic,copy)NSString * locVersion;
+@property (nonatomic, copy) NSString * locVersion;
 /**
 appStoreUrl
  */
-@property(nonatomic,copy)NSString * appStoreUrl;
+@property (nonatomic, copy) NSString * appStoreUrl;
 /**
  存更新信息的plist文件路径
  */
-@property(nonatomic,copy)NSString * updatePlistPath;
+@property (nonatomic, copy) NSString * updatePlistPath;
+
+/**
+ 更新文字内容提要
+ */
+@property (nonatomic, copy) NSString * updateMessage;
 
 @end
-@implementation XDUpdateManager
-/**
- 构造方法
 
- @return 返回当前对象类型
+@implementation XDUpdateManager
+
+/**
+ 单例对象
+
+ @return 单例对象
  */
-- (instancetype)init
++ (instancetype)sharedInstance
 {
-    self = [super init];
-    if (self) {
+    static XDUpdateManager * updateManager = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        updateManager = [[self alloc] init];
         //通过plist 文件获取应用当前本地版本
         NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-        self.locVersion= [infoDictionary objectForKey:@"CFBundleShortVersionString"];
-        self.appStoreUrl=[[NSString alloc] initWithFormat:@"http://itunes.apple.com/lookup?id=%@",APPID];
-        NSArray*paths=NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
-        NSString*path=[paths objectAtIndex:0];
-        NSString *filePath=[path stringByAppendingPathComponent:@"/update.plist"];
-        self.updatePlistPath=filePath;
-    }
-    return self;
-}
+        updateManager.locVersion = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+        updateManager.appStoreUrl = [[NSString alloc] initWithFormat:@"http://itunes.apple.com/lookup?id=%@",APPID];
+        //
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+        NSString *path = [paths objectAtIndex:0];
+        NSString *filePath = [path stringByAppendingPathComponent:@"/update.plist"];
+        updateManager.updatePlistPath = filePath;
 
+    });
+    return updateManager;
+}
 /**
  检查更新方法
  */
-+(void)CheckVersionUpadateWithForce:(BOOL)isForce{
-    XDUpdateManager *manager=[[XDUpdateManager alloc]init];
-    [[AFHTTPSessionManager manager]GET:manager.appStoreUrl parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
++ (void)CheckVersionUpadateWithForce:(BOOL)isForce {
+    XDUpdateManager *manager = [XDUpdateManager sharedInstance];
+    
+    [[AFHTTPSessionManager manager] GET:manager.appStoreUrl parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //判断是否有结果
-        if(responseObject[@"resultCount"]>0){
+        if (responseObject[@"resultCount"] > 0) {
             //取出线上的版本号
-            NSString *onlineVersion=[responseObject[@"results"] firstObject][@"version"];
+            NSString *onlineVersion = [responseObject[@"results"] firstObject][@"version"];
+            //获取更新版本信息
+            manager.updateMessage = [responseObject[@"results"] firstObject][@"releaseNotes"];
             switch ([manager compareOnlineVersion:onlineVersion toVersion:manager.locVersion]) {
                 //线上的版本小  不做操作
                 case -1:
@@ -98,15 +112,19 @@ appStoreUrl
 
  @param isforce 是否为强制弹窗
  */
--(void)showAlert:(BOOL)isforce{
+- (void)showAlert:(BOOL)isforce {
     
-    UIAlertController *alertVc=[UIAlertController alertControllerWithTitle:UPDATEMESSEGE message:nil preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:UPDATEMESSEGE message:[XDUpdateManager sharedInstance].updateMessage preferredStyle:UIAlertControllerStyleAlert];
     
-    UIViewController *cv=[self getCurrentVC];
+    UIViewController *cv = [self getCurrentVC];
     
     UIAlertAction *ok = [UIAlertAction actionWithTitle:UPDATEOK style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         //跳转到appStore 须真机测试看效果
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://itunes.apple.com/cn/app/id%@?mt=8",APPID]] options:@{} completionHandler:nil];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://itunes.apple.com/cn/app/id%@?mt=8", APPID]] options:@{} completionHandler:nil];
+        //点击后还要重新弹出 始终在app视图上显示
+        if (isforce) {
+            [self showAlert:YES];
+        }
     }];
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:UPDATECHANNEL style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -126,7 +144,7 @@ appStoreUrl
     else{
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             //这个需要文件创建读写费时就异步啦
-            NSInteger chanelCount=[self getChannelCount];
+            NSInteger chanelCount = [self getChannelCount];
             dispatch_async(dispatch_get_main_queue(), ^{
                 //看是否弹出最大次数 弹出窗体
                 if (chanelCount<MAXCHANNELCOUNT) {
@@ -176,7 +194,7 @@ appStoreUrl
 /**
  版本更新把取消更新次数置空
  */
--(void)clearPlistChannelCount{
+- (void)clearPlistChannelCount {
     
     //先判断plist是否存在 不存在可以先不考虑 等有更新在创建文件就可以
     
@@ -190,7 +208,7 @@ appStoreUrl
         
         if (![plistVersion isEqualToString:self.locVersion]) {
             
-            NSMutableDictionary *updateDic=[NSMutableDictionary dictionaryWithContentsOfFile:self.updatePlistPath];
+            NSMutableDictionary *updateDic = [NSMutableDictionary dictionaryWithContentsOfFile:self.updatePlistPath];
             
             [updateDic setValue:@(0) forKey:@"channelCount"];
             
@@ -203,15 +221,15 @@ appStoreUrl
 /**
  获取到点击取消按钮的次数
  */
--(NSInteger)getChannelCount{
+- (NSInteger)getChannelCount {
     BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:_updatePlistPath];
     if (result) {
-      NSNumber *count=[NSDictionary dictionaryWithContentsOfFile:_updatePlistPath][@"channelCount"];
+      NSNumber *count = [NSDictionary dictionaryWithContentsOfFile:_updatePlistPath][@"channelCount"];
         return  [count integerValue];
     }
     else{
         //创建时将本地版本加入plist文件
-        NSDictionary *dic=[NSDictionary dictionaryWithObjectsAndKeys:@(0),@"channelCount",self.locVersion,@"plistVersion",nil];
+        NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:@(0),@"channelCount",self.locVersion,@"plistVersion",nil];
         [dic writeToFile:_updatePlistPath atomically:YES];
         return 0;
     }
@@ -220,11 +238,11 @@ appStoreUrl
 /**
 取消按钮点击记录增加次数
  */
--(void)ChannelCountAdd{
+- (void)ChannelCountAdd {
     BOOL result = [[NSFileManager defaultManager] fileExistsAtPath:_updatePlistPath];
     if (result) {
-        NSMutableDictionary *updateDic=[NSMutableDictionary dictionaryWithContentsOfFile:_updatePlistPath];
-        NSNumber *channelCount=updateDic[@"channelCount"];
+        NSMutableDictionary *updateDic = [NSMutableDictionary dictionaryWithContentsOfFile:_updatePlistPath];
+        NSNumber *channelCount = updateDic[@"channelCount"];
         [updateDic setValue:  @([channelCount integerValue]+1) forKey:@"channelCount"];
         [updateDic writeToFile:_updatePlistPath atomically:YES];
     }

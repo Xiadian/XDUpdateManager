@@ -35,8 +35,8 @@
  @param sender sender
  */
 - (IBAction)btnNotForeClick:(id)sender {
-       //若此版本没必要强制更新的话把本方法写在AppDelegate里
-         [XDUpdateManager CheckVersionUpadateWithForce:NO];
+    //若此版本没必要强制更新的话把本方法写在AppDelegate里
+    [XDUpdateManager CheckVersionUpadateWithForce:NO];
 }
 
 @end
